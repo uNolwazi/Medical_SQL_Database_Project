@@ -1,2 +1,165 @@
-# Medical_SQL_Database_Project
-SQL Server project for a medical database with tables, queries, views, and stored procedures.
+ CREATE TABLE DOCTORS(   
+DOCTOR_ID VARCHAR(5)NOT NULL PRIMARY KEY,  
+DOCTOR_SURNAME VARCHAR(40) NOT NULL)  
+
+CREATE TABLE PATIENTS(  
+PATIENT_ID VARCHAR(5) NOT NULL PRIMARY KEY,   
+PATIENT_NAME  VARCHAR(20) NOT NULL,   
+PATIENT_SURNAME VARCHAR(20) NOT NULL,    
+DATE_OF_BIRTH SMALLDATETIME NOT NULL) 
+
+SELECT*FROM PATIENTS
+
+CREATE TABLE TEST_RESULTS(   
+DOCTOR_ID VARCHAR(5) NOT NULL FOREIGN KEY REFERENCES DOCTORS(DOCTOR_ID),  
+PATIENT_ID VARCHAR(5) NOT NULL FOREIGN KEY REFERENCES PATIENTS(PATIENT_ID),  
+TEST_DATE SMALLDATETIME NOT NULL,  
+TEST_RESULT FLOAT NOT NULL 
+PRIMARY KEY (DOCTOR_ID, PATIENT_ID, TEST_DATE)) 
+
+SELECT*FROM TEST_RESULT
+
+INSERT INTO DOCTORS VALUES
+('DR001','Coetzee'),
+('DR002','Hasim'),
+('DR003','Mbeku'),
+('DR004','Phillips')
+
+SELECT*FROM DOCTORS
+
+INSERT INTO PATIENTS VALUES
+('PT001','Dominique','Woolridge','1962-04-19'),
+('PT002','Nico','Baird','1951-11-19'),
+('PT003','Derek','Moore', '1995-06-24'),
+('PT004','Neo','Petlele','1947-12-29'),
+('PT005','Andrew','Crouch','1972-01-30')
+
+INSERT INTO TEST_RESULTS VALUES
+('DR002','PT001','2021-02-05',7.8),
+('DR001','PT004','2021-01-14',11.1),
+('DR002','PT001','2021-03-15',8.9),
+('DR001','PT004','2021-02-28',11.7),
+('DR004','PT005','2021-02-13',5.6),
+('DR002','PT002','2021-03-30',7.8),
+('DR004','PT002','2021-05-03',6.4)
+
+CREATE VIEW NormalResults AS
+SELECT
+
+    'PT002','Nico','Baird','1951-11-19'),
+	'PT005','Andrew','Crouch','1972-01-30')
+	
+   FROM
+    Patients values
+    JOIN Tests_Results ON Patient_ID = Patient_ID
+    JOIN Doctors  ON Doctor_ID = Doctor_ID
+WHERE
+     Test_Result < 7.8;
+
+SELECT*FROM NormalResults
+
+CREATE PROCEDURE PatientRecord
+    @PatientID VARCHAR(10)
+AS
+BEGIN
+    SELECT
+        D.Doctor_Surname,
+        Test_Date,
+        Test_Result
+    FROM
+        Tests T
+        JOIN Doctors D ON T.Doctor_ID = D.Doctor_ID
+    WHERE
+        T.Patient_ID = @PatientID;
+END;
+
+
+EXEC PatientRecord @PatientID = 'PT001';
+
+SELECT
+    D.Doctor_ID,
+    D.Doctor_Surname,
+    CASE
+        WHEN COUNT(T.Patient_ID) > 0 THEN 'Patients referred'
+        ELSE 'No patients referred'
+    END AS Referrals
+FROM
+    Doctors D
+    LEFT JOIN Tests T ON D.Doctor_ID = T.Doctor_ID
+GROUP BY
+    D.Doctor_ID, D.Doctor_Surname;
+
+
+SELECT
+    P.Patient_Name,
+    P.Patient_Surname,
+    AVG(T.Test_Result) AS Average_Test_Result
+FROM
+    Patients P
+    JOIN Tests T ON P.Patient_ID = T.Patient_ID
+GROUP BY
+    P.Patient_ID, P.Patient_Name, P.Patient_Surname
+ORDER BY
+    Average_Test_Result DESC;
+
+SELECT
+    P.Patient_Name,
+    P.Patient_Surname
+FROM
+    Patients P
+WHERE
+    P.Patient_ID NOT IN (
+        SELECT DISTINCT T.Patient_ID
+        FROM Tests T
+        WHERE T.Test_Type = 'Blood Sugar'
+    );
+
+2.3 
+ALTER TABLE CUSTOMERS
+ADD CONTACT_NUMBER VARCHAR(10);
+
+ UPDATE CUSTOMERS
+SET CONTACT_NUMBER = CASE
+    WHEN Customer_ID = 'C001' THEN '1234567890'
+    WHEN Customer_ID = 'C002' THEN '9876543210'
+    
+    ELSE 'Unknown'
+END;
+
+SELECT
+    C.CUSTOMER_ID,
+    C.CUSTOMER_NAME
+FROM
+    CUSTOMERS C
+WHERE
+    C.CUSTOMER_ID NOT IN (
+        SELECT DISTINCT B.CUSTOMER_ID
+        FROM BOOKINGS B
+    );
+
+SELECT
+    C.CUSTOMER_ID,
+    C.CUSTOMER_NAME,
+    COUNT(EB.EQUIPMENT_BOOKING_ID) AS EquipmentBookings
+FROM
+    CUSTOMERS C
+    LEFT JOIN EQUIPMENT_BOOKINGS EB ON C.CUSTOMER_ID = EB.CUSTOMER_ID
+GROUP BY
+    C.CUSTOMER_ID, C.CUSTOMER_NAME
+ORDER BY
+    EquipmentBookings DESC;
+
+
+	SELECT
+    C.CUSTOMER_ID,
+    C.CUSTOMER_NAME,
+    EB.BOOKING_DATE,
+    EB.HOURS
+FROM
+    CUSTOMERS C
+    JOIN EQUIPMENT_BOOKINGS EB ON C.CUSTOMER_ID = EB.CUSTOMER_ID
+WHERE
+    EB.EQUIPMENT_CODE = 'E0001'
+ORDER BY
+    EB.HOURS DESC
+LIMIT 1;
